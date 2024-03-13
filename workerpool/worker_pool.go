@@ -67,14 +67,10 @@ func (wp *workerPool) run(ctx context.Context) {
 	// then makes sure to exit if context is done.
 	defer wp.wg.Done()
 	for {
-		select {
-		case <-ctx.Done():
+		current_task, ok := <-wp.tasks
+		if !ok || ctx.Err() != nil {
 			return
-		case current_task, ok := <-wp.tasks:
-			if !ok || ctx.Err() != nil {
-				return
-			}
-			wp.results <- current_task.Func(current_task.Args...)
 		}
+		wp.results <- current_task.Func(current_task.Args...)
 	}
 }
